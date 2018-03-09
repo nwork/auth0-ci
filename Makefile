@@ -19,6 +19,7 @@ install: build
 
 install_test_requirements:
 	pip install -r test_requirements.txt
+	pip install -r requirements.txt
 
 venv: venv
 	python -m venv venv

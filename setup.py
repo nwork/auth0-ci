@@ -18,11 +18,12 @@ setup(
     version="1.0.0",
     author="Guillaume Destuynder",
     author_email="gdestuynder@mozilla.com",
+    py_modules=["uploader_login_page", "uploader_rules", "uploader_clients"],
     description=("Super simple CI scripts for Auth0"),
     license="MPL",
     keywords="auth0 ci deploy",
     url="https://github.com/mozilla-iam/auth0-ci",
-    install_requires=[],
+    install_requires=['authzerolib'],
     classifiers=["Development Status :: 5 - Production/Stable",
                  "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"]
 )
