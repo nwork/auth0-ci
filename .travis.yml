@@ -1,0 +1,9 @@
+language: python
+python:
+    - 3.6
+before_install:
+    - make install_test_requirements
+install:
+    - make install
+script:
+    - make test
