@@ -9,3 +9,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.0.0 - 2018-03-08
 ### Added
 - This ChangeLog
+- Initial import from https://github.com/mozilla-iam/auth0-scripts

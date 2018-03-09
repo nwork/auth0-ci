@@ -1,3 +1,4 @@
-# auth0-ci
+# ci authzero-utils
 
-Super simple Change Integration for Auth0. Use authzerolib.
+Various scripts utilizing authzerolib to do things such as sync'ing authzero login page, rules, clients, settings, etc.
+Useful to run in your CI!
