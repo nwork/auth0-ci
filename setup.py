@@ -14,7 +14,7 @@ def read(fname):
 
 
 setup(
-    name="sample",
+    name="Auth0-ci",
     version="1.0.0",
     author="Guillaume Destuynder",
     author_email="gdestuynder@mozilla.com",
