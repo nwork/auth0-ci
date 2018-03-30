@@ -7,6 +7,7 @@
 # Contributors: Guillaume Destuynder <kang@mozilla.com>
 
 import argparse
+import difflib
 import glob
 import json
 import logging
@@ -26,6 +27,17 @@ class DotDict(dict):
             if hasattr(value, 'keys'):
                 value = DotDict(value)
             self[key] = value
+
+def find_client_by_id(clients, client_id):
+    """
+    client_id: str - a client id
+    clients: list - list of client objects
+    Returns: client object or None
+    """
+    for c in clients:
+        if (c.get('client_id') == client_id):
+            return c
+    return None
 
 if __name__ == "__main__":
     # Logging
@@ -49,9 +61,10 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--clientid', default=credentials.client_id, required=require_creds, help='Auth0 client id')
     parser.add_argument('-s', '--clientsecret', default=credentials.client_secret, required=require_creds, help='Auth0 client secret')
     parser.add_argument('-r', '--clients-dir', default='clients', help='Directory containing clients in Auth0 format')
+    parser.add_argument('--show-diff', action="store_true", help='Show a unified diff of the client being updated on stdout')
     parser.add_argument('-g', '--get-clients-only', action="store_true",
                         help='Get clients from the Auth0 deployment and write them to disk. This will make NO changes '
-                        'to Auth0')
+                        'to Auth0, but will OVERWRITE all local client files')
     args = parser.parse_args()
 
     config = DotDict({'client_id': args.clientid, 'client_secret': args.clientsecret, 'uri': args.uri})
@@ -68,6 +81,8 @@ if __name__ == "__main__":
     if not os.path.isdir(args.clients_dir):
         raise Exception('NotAClientsDirectory' (args.clients_dir))
 
+
+    # Write remote clients back to disk/local
     if args.get_clients_only:
         for client in remote_clients:
             with open("{}/{}.json".format(args.clients_dir, client.get('client_id')), 'w') as fd:
@@ -98,30 +113,41 @@ if __name__ == "__main__":
     # Find dead clients (i.e. to remove clients that only exist remotely)
     remove_clients = []
     for rl in local_clients:
-        ok = False
-        for rr in remote_clients:
-            if (rl.client_id == rr.get('client_id')):
-                ok = True
-                continue
-        if not ok:
+        if (find_client_by_id(local_clients, rl.client_id) is None):
             remove_clients.append(rr)
+            continue
     logger.debug("Found {} clients that not longer exist locally and will be deleted remotely".format(len(remove_clients)))
 
     # Update or create (or delete) clients as needed
     for r in remove_clients:
-        logger.debug("Removing client {} ({}) from Auth0".format(r.name, r.client_id))
-        authzero.delete_client(r.id)
+        logger.debug("Removing remote client {} ({}) from Auth0".format(r.name, r.client_id))
+        authzero.delete_client(r.client_id)
 
     ## Update & Create (I believe this may be atomic swaps for updates)
-    for r in local_clients:
-        if not r.client_id:
-            logger.debug("Creating new client {} on Auth0".format(r.name))
+    for lclient in local_clients:
+        if not lclient.client_id:
+            logger.debug("Creating new remote client {} on Auth0".format(lclient.name))
             noop
             ret = authzero.create_client(r)
-            logger.debug("New client created with id {}".format(ret.get('client_id')))
+            logger.debug("New remote client created with id {}".format(ret.get('client_id')))
         else:
-            logger.debug("Updating client {} ({}) on Auth0".format(r.name, r.client_id))
-            authzero.update_client(r.client_id, r)
+            rclient = find_client_by_id(remote_clients, lclient.get('client_id'))
+            if (rclient == lclient):
+                logger.debug("Remote and local clients for id {} ({}) are identical, no need to "
+                             "update".format(lclient.get('client_id'), lclient.get('name')))
+                continue
+
+            logger.debug("Updating remote client {} ({}) on Auth0".format(lclient.name, lclient.client_id))
+
+            # Show pretty informational unified diff if requested, of the changes to be pushed to Auth0
+            if args.show_diff:
+                diff = difflib.unified_diff(json.dumps(rclient, indent=4).split('\n'),
+                                            json.dumps(lclient, indent=4).split('\n'),
+                                            fromfile="previous_{}.json".format(lclient.get('client_id')),
+                                            tofile="new_{}.json".format(lclient.get('client_id')))
+                print('\n'.join(diff))
+
             noop
+            authzero.update_client(lclient.client_id, r)
 
     sys.exit(0)
