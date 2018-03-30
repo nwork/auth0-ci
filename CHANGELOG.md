@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Support for loading credentials from `credentials.json` in addition to CLI, for all scripts
+
 ## 1.0.0 - 2018-03-08
 ### Added
 - This ChangeLog
