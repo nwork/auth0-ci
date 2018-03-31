@@ -11,6 +11,7 @@ import difflib
 import glob
 import json
 import logging
+import logging.handlers
 import os
 import sys
 from authzero import AuthZero,AuthZeroRule
@@ -40,12 +41,6 @@ def find_client_by_id(clients, client_id):
     return None
 
 if __name__ == "__main__":
-    # Logging
-    formatstr="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
-    logging.basicConfig(format=formatstr, datefmt="%H:%M:%S", stream=sys.stdout)
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
     # Default credentials loading
     try:
         with open('credentials.json', 'r') as fd:
@@ -60,12 +55,27 @@ if __name__ == "__main__":
     parser.add_argument('-u', '--uri', default=credentials.uri, help='URI to Auth0 management API')
     parser.add_argument('-c', '--clientid', default=credentials.client_id, required=require_creds, help='Auth0 client id')
     parser.add_argument('-s', '--clientsecret', default=credentials.client_secret, required=require_creds, help='Auth0 client secret')
+    parser.add_argument('-d', '--debug', action="store_true", help='Enable debug mode')
+    parser.add_argument('-v', '--verbose', action="store_true", help='Show log messages on stderr instead of sending to syslog')
     parser.add_argument('-r', '--clients-dir', default='clients', help='Directory containing clients in Auth0 format')
     parser.add_argument('--show-diff', action="store_true", help='Show a unified diff of the client being updated on stdout')
     parser.add_argument('-g', '--get-clients-only', action="store_true",
                         help='Get clients from the Auth0 deployment and write them to disk. This will make NO changes '
                         'to Auth0, but will OVERWRITE all local client files')
     args = parser.parse_args()
+
+    # Logging
+    logger = logging.getLogger(__name__)
+    if not args.verbose:
+        logger.addHandler(logging.handlers.SysLogHandler(address='/dev/log'))
+    else:
+        formatstr="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
+        logging.basicConfig(format=formatstr, datefmt="%H:%M:%S", stream=sys.stderr)
+
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     config = DotDict({'client_id': args.clientid, 'client_secret': args.clientsecret, 'uri': args.uri})
     authzero = AuthZero(config)
@@ -129,25 +139,25 @@ if __name__ == "__main__":
             logger.debug("Creating new remote client {} on Auth0".format(lclient.name))
             noop
             ret = authzero.create_client(r)
-            logger.debug("New remote client created with id {}".format(ret.get('client_id')))
+            logger.info("New remote client {} ({}) created on Auth0".format(ret.get('client_id'), ret.get('name')))
         else:
-            rclient = find_client_by_id(remote_clients, lclient.get('client_id'))
+            rclient = find_client_by_id(remote_clients, lclient.client_id)
             if (rclient == lclient):
                 logger.debug("Remote and local clients for id {} ({}) are identical, no need to "
-                             "update".format(lclient.get('client_id'), lclient.get('name')))
+                             "update".format(lclient.client_id, lclient.name))
                 continue
-
-            logger.debug("Updating remote client {} ({}) on Auth0".format(lclient.name, lclient.client_id))
 
             # Show pretty informational unified diff if requested, of the changes to be pushed to Auth0
             if args.show_diff:
                 diff = difflib.unified_diff(json.dumps(rclient, indent=4).split('\n'),
                                             json.dumps(lclient, indent=4).split('\n'),
-                                            fromfile="previous_{}.json".format(lclient.get('client_id')),
-                                            tofile="new_{}.json".format(lclient.get('client_id')))
+                                            fromfile="previous_{}.json".format(lclient.client_id),
+                                            tofile="new_{}.json".format(lclient.client_id))
+                print("Unified diff for client {} ({})".format(lclient.client_id, lclient.name))
                 print('\n'.join(diff))
 
-            noop
-            authzero.update_client(lclient.client_id, r)
+            logger.debug("Updating remote client {} ({}) on Auth0".format(lclient.name, lclient.client_id))
+            authzero.update_client(lclient.client_id, lclient)
+            logger.info("Client {} ({}) has been updated on Auth0".format(client.name, lclient.client_id))
 
     sys.exit(0)
