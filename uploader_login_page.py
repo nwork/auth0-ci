@@ -32,11 +32,20 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
+    # Default credentials loading
+    try:
+        with open('credentials.json', 'r') as fd:
+            credentials = DotDict(json.load(fd))
+            require_creds = False
+    except FileNotFoundError:
+        credentials = DotDict({'client_id': '', 'client_secret': '', 'uri': 'auth-dev.mozilla.auth0.com'})
+        require_creds = True
+
     # Arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--uri', default="auth-dev.mozilla.auth0.com", help='URI to Auth0 management API')
-    parser.add_argument('-c', '--clientid', required=True, help='Auth0 client id')
-    parser.add_argument('-s', '--clientsecret', required=True, help='Auth0 client secret')
+    parser.add_argument('-u', '--uri', default=credentials.uri, help='URI to Auth0 management API')
+    parser.add_argument('-c', '--clientid', default=credentials.client_id, required=require_creds, help='Auth0 client id')
+    parser.add_argument('-s', '--clientsecret', default=credentials.client_secret, required=require_creds, help='Auth0 client secret')
     parser.add_argument('--default-client', default='VNGM4quJw3Nhx28j8XKVYmu5LcPMCgAH',
                         help='Default Auth0 client id, needed for login page for example')
     parser.add_argument('--login-page', required=True, help='Auth0 hosted login page (HTML)')

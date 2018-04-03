@@ -15,7 +15,7 @@ def read(fname):
 
 setup(
     name="Auth0-ci",
-    version="1.0.0",
+    version="1.0.1",
     author="Guillaume Destuynder",
     author_email="gdestuynder@mozilla.com",
     py_modules=["uploader_login_page", "uploader_rules", "uploader_clients"],
