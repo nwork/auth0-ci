@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 1.0.2 - 1018-04-10
+### Changed
+- Install scripts as.. scripts so that you can use them directly after a `pip install auth0-ci`
+- Removed unused open() call in setup.py
+
 ## 1.0.1 - 2018-03-30
 ### Added
 - Support for local `credentials.json` file in addition to CLI
