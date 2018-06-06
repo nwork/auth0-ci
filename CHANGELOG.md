@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## 1.0.2 - 1018-04-10
+## 1.0.3 - 2018-06-06
+### Changed
+
+- Python 34 fix
+
+## 1.0.2 - 2018-04-10
 ### Changed
 - Install scripts as.. scripts so that you can use them directly after a `pip install auth0-ci`
 - Removed unused open() call in setup.py

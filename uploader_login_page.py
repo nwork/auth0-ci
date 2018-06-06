@@ -57,7 +57,7 @@ if __name__ == "__main__":
     logger.debug("Got access token for client_id:{}".format(args.clientid))
 
     client_attributes = DotDict(dict())
-    with open(args.login_page, 'r') as fd:
+    with open(args.login_page, 'r', encoding='utf-8') as fd:
         client_attributes.custom_login_page = fd.read()
     # on any error, `authzero` will raise an exception and python will exit with non-zero code
     ret = authzero.update_client(args.default_client, client_attributes)
