@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 1.0.4 - 2018-06-29
+### Changed
+
+- Python 36<365 fix for logging and utf8
+
 ## 1.0.3 - 2018-06-06
 ### Changed
 

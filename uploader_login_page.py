@@ -61,5 +61,5 @@ if __name__ == "__main__":
         client_attributes.custom_login_page = fd.read()
     # on any error, `authzero` will raise an exception and python will exit with non-zero code
     ret = authzero.update_client(args.default_client, client_attributes)
-    logger.debug("Default client updated {}".format(ret))
+    logger.debug("Default client updated {}".format(json.dumps(ret)))
     sys.exit(0)
