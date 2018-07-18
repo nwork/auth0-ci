@@ -72,6 +72,10 @@ if __name__ == "__main__":
     for rfile in local_rules_files:
         logger.debug("Reading local rule configuration {}".format(rfile))
         rule = AuthZeroRule()
+        # Overload the object with our own statuses
+        rule.is_new = False
+        rule.is_the_same = False
+
         # Rule name comes from the filename with the auth0 format
         rule.name = rfile.split('/')[-1].split('.')[:-1][0]
         with open(rfile, 'r') as fd:
@@ -87,12 +91,18 @@ if __name__ == "__main__":
         # Match with existing remote rule if we need to update.. this uses the rule name!
         rule_nr = [i for i,_ in enumerate(remote_rules) if _.get('name') == rule.name]
         if rule_nr:
-            # If there's multi matches it means we have duplicate rule names and  we're screwed.
+            # If there's multi matches it means we have duplicate rule names and we're screwed.
             # To fix that we'd need to change the auth0 local format to use rule ids (which we could eventually)
             if (len(rule_nr) > 1):
                 raise Exception('RuleMatchByNameFailed', (rule.name, rule_nr))
             rule.id = remote_rules[rule_nr[0]].get('id')
             rule.is_new = False
+
+            # Is the rule different?
+            remote_rule = remote_rules[rule_nr[0]]
+            rule.is_the_same = (rule.script == remote_rule.get('script')) & (rule.enabled == bool(remote_rule.get('enabled'))) \
+                   & (rule.stage == remote_rule.get('stage')) & (rule.order == remote_rule.get('order'))
+
         else:
             # No remote rule match, so it's a new rule
             logger.debug('Rule only exists locally, considered new and to be created: {}'.format(rule.name))
@@ -120,17 +130,19 @@ if __name__ == "__main__":
     # Update or create (or delete) rules as needed
     ## Delete first in case we need to get some order numbers free'd
     for r in remove_rules:
-        logger.debug("Removing rule {} ({}) from Auth0".format(r.name, r.id))
+        logger.debug("[-] Removing rule {} ({}) from Auth0".format(r.name, r.id))
         authzero.delete_rule(r.id)
 
     ## Update & Create (I believe this may be atomic swaps for updates)
     for r in local_rules:
         if r.is_new:
-            logger.debug("Creating new rule {} on Auth0".format(r.name))
+            logger.debug("[+] Creating new rule {} on Auth0".format(r.name))
             ret = authzero.create_rule(r)
-            logger.debug("New rule created with id {}".format(ret.get('id')))
+            logger.debug("+ New rule created with id {}".format(ret.get('id')))
+        elif r.is_the_same:
+            logger.debug("[=] Rule {} is unchanged, will no update".format(r.name))
         else:
-            logger.debug("Updating rule {} ({}) on Auth0".format(r.name, r.id))
+            logger.debug("[~] Updating rule {} ({}) on Auth0".format(r.name, r.id))
             authzero.update_rule(r.id, r)
 
     sys.exit(0)
