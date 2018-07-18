@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Support for only uploading rules that actually changed on local disk
+
 ## 1.0.4 - 2018-06-29
 ### Changed
 
