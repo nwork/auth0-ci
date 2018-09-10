@@ -7,12 +7,52 @@ Useful to run in your CI!
 
 ## Credentials & Scopes
 
-You will need to create a non-interactive client in your Auth0 deployment, and assign it scopes in the Auth0 API setup
-section, for the Auth0 management API. Refer to Auth0's documentation if you need help on how to do this.
+### Prerequisites
 
-The required scopes depend on the script, though they all follow these general rules:
-- do not require scopes allowing access to secrets if possible (passwords, keys, etc.)
-- require the minimum set of scopes possible
+* Create a non-interactive (machine to machine) client
+  ([application](https://auth0.com/docs/applications)) in your Auth0 deployment
+  by going to the `Applications` section of the Auth0 UI
+* Authorize that Auth0 application so access the Management API by going to the
+  [`APIs`](https://auth0.com/docs/api/info) section of the Auth0 UI, selecting
+  your application
+  * The required scopes depend on the script, though they all follow these general rules:
+    - do not require scopes allowing access to secrets if possible (passwords, keys, etc.)
+    - require the minimum set of scopes possible
+  * Here is a set of scopes you would need to grant for running most scripts present in this repository:
+    * read:clients
+    * update:clients
+    * delete:clients
+    * create:clients
+    * read:rules
+    * update:rules
+    * delete:rules
+    * create:rules
+
+In Mozilla's Auth0 accounts use the existing `Auth0 CI Updater client` client
+which has already been created and granted the correct scopes.
+
+### Credentials
+
+You can either pass the `URI`, `CLIENTID` and `CLIENTSECRET` as arguments on the
+command line or store them in `credentials.json` in the current working
+directory.
+
+The syntax of `credentials.json` is
+
+```json
+{
+  "uri": "auth-dev.mozilla.auth0.com",
+  "client_id": "AAA",
+  "client_secret": "BBB"
+}
+```
+
+Once these credentials are stored you need not pass them on the command line
+and can instead instantiate the tools like this
+
+```
+./uploader_rules.py -r rules
+```
 
 ## Scripts
 ### uploader_login_page.py
@@ -22,7 +62,6 @@ SCOPES: `update:clients`
 usage: uploader_login_page.py [-h] [-u URI] -c CLIENTID -s CLIENTSECRET
                               [--default-client DEFAULT_CLIENT] --login-page
                               LOGIN_PAGE
-uploader_login_page.py: error: the following arguments are required: -c/--clientid, -s/--clientsecret, --login-page
 ```
 
 Example: `./uploader_login_page.py -u auth-dev.mozilla.auth0.com -c AAA -s BBB --default-client CCC --login-page some.html`
@@ -37,7 +76,6 @@ SCOPES: `read:rules`, `update:rules`, `delete:rules`, `create:rules`
 ```
 usage: uploader_rules.py [-h] [-u URI] -c CLIENTID -s CLIENTSECRET
                          [-r RULES_DIR]
-uploader_rules.py: error: the following arguments are required: -c/--clientid, -s/--clientsecret
 ```
 
 Example: `./uploader_rules.py -u auth-dev.mozilla.auth0.com -c AAA -s BBB -r rules`
