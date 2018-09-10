@@ -14,18 +14,19 @@ Useful to run in your CI!
   by going to the `Applications` section of the Auth0 UI
 * Authorize that Auth0 application so access the Management API by going to the
   [`APIs`](https://auth0.com/docs/api/info) section of the Auth0 UI, selecting
-  your application, authorizing it then granting the following scopes
-  * read:clients
-  * update:clients
-  * delete:clients
-  * create:clients
-  * read:rules
-  * update:rules
-  * delete:rules
-  * create:rules
+  your application
   * The required scopes depend on the script, though they all follow these general rules:
     - do not require scopes allowing access to secrets if possible (passwords, keys, etc.)
     - require the minimum set of scopes possible
+  * Here is a set of scopes you would need to grant for runnign most scripts present in this repository:
+    * read:clients
+    * update:clients
+    * delete:clients
+    * create:clients
+    * read:rules
+    * update:rules
+    * delete:rules
+    * create:rules
 
 In Mozilla's Auth0 accounts use the existing `Auth0 CI Updater client` client
 which has already been created and granted the correct scopes.
