@@ -18,7 +18,7 @@ Useful to run in your CI!
   * The required scopes depend on the script, though they all follow these general rules:
     - do not require scopes allowing access to secrets if possible (passwords, keys, etc.)
     - require the minimum set of scopes possible
-  * Here is a set of scopes you would need to grant for runnign most scripts present in this repository:
+  * Here is a set of scopes you would need to grant for running most scripts present in this repository:
     * read:clients
     * update:clients
     * delete:clients
